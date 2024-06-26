@@ -25,9 +25,9 @@
 //copy the code below to create your secrets.h file
 
 //copy for using blynk
-#define BLYNK_TEMPLATE_ID "YOUR_BLYNK_TEMPLATE_ID"
-#define BLYNK_TEMPLATE_NAME "YOUR_BLYNK_TEMPLATE_NAME"
-#define BLYNK_AUTH_TOKEN "YOUR_BLYNK_AUTH_TOKEN"
+//#define BLYNK_TEMPLATE_ID "YOUR_BLYNK_TEMPLATE_ID"
+//#define BLYNK_TEMPLATE_NAME "YOUR_BLYNK_TEMPLATE_NAME"
+//#define BLYNK_AUTH_TOKEN "YOUR_BLYNK_AUTH_TOKEN"
 
 // Home Network
 const char *WIFI_SSID = "BELL149";
