@@ -1,19 +1,8 @@
-#include <FS.h>
-#include <MFRC522.h>
-#include <SPI.h>
-#include <ESP32Servo.h>
-#include <ESPAsyncWebServer.h>
-#include <WiFi.h>
-#include <SPIFFS.h>
-#include <Adafruit_Keypad.h>
-
 #include "handlers.h"
 #include "tasks.h"
 #include "wifi_handler.h"
 #include "password_utils.h"
 
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
 #include <freertos/semphr.h>
 
 AsyncWebServer server(80);
