@@ -3,7 +3,9 @@
 #include "wifi_handler.h"
 #include "password_utils.h"
 
+#include <HTTPClient.h>
 #include <freertos/semphr.h>
+#include <AsyncTCP.h>
 
 AsyncWebServer server(80);
 
@@ -30,15 +32,34 @@ Servo SERVO;
 
 String input = "";
 String savedPassword = "";
+const char* serverStoreName = "http://172.20.10.3:3000/api/scanned-uid";
 
-byte authorizedUIDs[][4] = {
-    {0x2A, 0x9E, 0x3D, 0x86}
-};
-
-const int numberOfAuthorizedUIDs = sizeof(authorizedUIDs) / sizeof(authorizedUIDs[0]);
+float batteryVoltage = 0.0;
 
 bool isAuthActive = false;
 SemaphoreHandle_t xSemaphore;
+
+void sendUIDToServer(String uid) {
+    if (WiFi.status() == WL_CONNECTED) {
+        HTTPClient http;
+        http.begin(serverStoreName);
+        http.addHeader("Content-Type", "application/json");
+        String jsonPayload = "{\"uid\":\"" + uid + "\"}";
+        int httpResponseCode = http.POST(jsonPayload);
+
+        if (httpResponseCode > 0) {
+            String response = http.getString();
+            Serial.println("HTTP Response code: " + String(httpResponseCode));
+            Serial.println("Server response: " + response);
+        } else {
+            Serial.print("Error on sending POST: ");
+            Serial.println(httpResponseCode);
+        }
+        http.end();
+    } else {
+        Serial.println("WiFi not connected");
+    }
+}
 
 void setup() {
     Serial.begin(115200);
@@ -55,9 +76,10 @@ void setup() {
     SERVO.attach(SERVO_PIN);
 
     keypad.begin();
-    
+
     server.on("/lock", HTTP_GET, handleLock);
     server.on("/password-generator", HTTP_POST, [](AsyncWebServerRequest *request) {}, NULL, handlePasswordGenerator);
+    server.on("/scan", HTTP_GET, handleScanRequest);
     server.begin();
 
     Serial.println("\nSetup complete");   

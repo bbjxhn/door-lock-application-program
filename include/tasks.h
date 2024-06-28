@@ -15,10 +15,7 @@ extern String input;
 extern String savedPassword;
 extern bool isAuthActive;
 extern SemaphoreHandle_t xSemaphore;
-extern byte authorizedUIDs[][4];
-extern const int numberOfAuthorizedUIDs;
 
-bool isAuthorized(byte *uid, byte size);
 void keypadTask(void *param);
 void rfidTask(void *param);
 

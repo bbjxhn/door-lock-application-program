@@ -2,15 +2,6 @@
 #include "password_utils.h"
 #include <Arduino.h>
 
-bool isAuthorized(byte *uid, byte size) {
-    for (byte i = 0; i < numberOfAuthorizedUIDs; i++) {
-        if (memcmp(uid, authorizedUIDs[i], size) == 0) {
-            return true;
-        }
-    }
-    return false;
-}
-
 void keypadTask(void *param) {
     if (!readPasswordFromFile(savedPassword)) {
         Serial.println("Failed to read password from file.");
@@ -60,6 +51,7 @@ void rfidTask(void *param) {
             continue;
         }
 
+        /*
         if (isAuthorized(mfrc522.uid.uidByte, mfrc522.uid.size)) {
             isAuthActive = true;
             SERVO.write(180);
@@ -67,7 +59,8 @@ void rfidTask(void *param) {
             SERVO.write(-180);
         } else {
             isAuthActive = false;
-        }
+        */
         vTaskDelay(pdMS_TO_TICKS(1000));
+
     }
 }

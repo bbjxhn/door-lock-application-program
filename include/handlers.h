@@ -6,5 +6,6 @@
 
 void handleLock(AsyncWebServerRequest *request);
 void handlePasswordGenerator(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total);
+void handleScanRequest(AsyncWebServerRequest *request);
 
 #endif
