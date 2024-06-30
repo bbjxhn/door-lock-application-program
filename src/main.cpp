@@ -5,7 +5,6 @@
 
 #include <HTTPClient.h>
 #include <freertos/semphr.h>
-#include <AsyncTCP.h>
 
 AsyncWebServer server(80);
 
@@ -34,10 +33,11 @@ String input = "";
 String savedPassword = "";
 const char* serverStoreName = "http://172.20.10.3:3000/api/scanned-uid";
 
-float batteryVoltage = 0.0;
-
 bool isAuthActive = false;
 SemaphoreHandle_t xSemaphore;
+
+bool rfidScanSuccess = false;
+SemaphoreHandle_t scanSemaphore;
 
 void sendUIDToServer(String uid) {
     if (WiFi.status() == WL_CONNECTED) {
@@ -80,6 +80,12 @@ void setup() {
     server.on("/lock", HTTP_GET, handleLock);
     server.on("/password-generator", HTTP_POST, [](AsyncWebServerRequest *request) {}, NULL, handlePasswordGenerator);
     server.on("/scan", HTTP_GET, handleScanRequest);
+    server.on("/new-tag", HTTP_GET, handleNewTagRequest);
+    server.on("/new-tag", HTTP_OPTIONS, [](AsyncWebServerRequest *request) {
+        AsyncWebServerResponse *response = request->beginResponse(204);
+        sendCORSHeaders(response);
+        request->send(response);
+    });
     server.begin();
 
     Serial.println("\nSetup complete");   
@@ -90,8 +96,19 @@ void setup() {
         while (1);
     }
 
+    scanSemaphore = xSemaphoreCreateMutex();
+    if (scanSemaphore == NULL) {
+        Serial.println("Unable to create semaphore");
+        while (1);
+    }
+
+    esp_task_wdt_init(10, true);
+    esp_task_wdt_add(NULL);
+
     xTaskCreate(rfidTask, "rfidTask", 4096, NULL, 1, NULL);
     xTaskCreate(keypadTask, "keypadTask", 4096, NULL, 1, NULL);
 }
 
-void loop() {}
+void loop() {
+    esp_task_wdt_reset();
+}

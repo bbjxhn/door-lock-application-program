@@ -7,6 +7,7 @@
 #include <MFRC522.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
+#include <esp_task_wdt.h>
 
 extern Adafruit_Keypad keypad;
 extern Servo SERVO;

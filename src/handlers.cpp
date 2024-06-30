@@ -8,13 +8,22 @@
 
 #define SDA (21)
 
+bool isAddingNewTag;
+
 extern Servo SERVO;
 extern String savedPassword;
+extern bool rfidScanSuccess;
+extern SemaphoreHandle_t scanSemaphore;
 
 MFRC522 rfid(SDA, -1);
-extern void sendUIDToServer(String uid);
 
-#define BATTERY_PIN (25)
+AsyncWebServerRequest *pendingRequest = nullptr;
+
+void sendCORSHeaders(AsyncWebServerResponse *response) {
+    response->addHeader("Access-Control-Allow-Origin", "*");
+    response->addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    response->addHeader("Access-Control-Allow-Headers", "Content-Type");
+}
 
 void handleLock(AsyncWebServerRequest *request) {
     String state = request->getParam("state")->value();
@@ -57,20 +66,34 @@ void handlePasswordGenerator(AsyncWebServerRequest *request, uint8_t *data, size
 }
 
 void handleScanRequest(AsyncWebServerRequest *request) {
-    while (true) {
-        if (rfid.PICC_IsNewCardPresent() && rfid.PICC_ReadCardSerial()) {
-            String uid = "";
-            for (byte i = 0; i < rfid.uid.size; i++) {
-                uid += String(rfid.uid.uidByte[i] < 0x10 ? "0" : "");
-                uid += String(rfid.uid.uidByte[i], HEX);
-            }
-            uid.toUpperCase();
-            sendUIDToServer(uid);
-            request->send(200, "application/json", "{\"success\": true, \"uid\": \"" + uid + "\"}");
-            rfid.PICC_HaltA();
-            break;
-        } else {
-            request->send(500, "application/json", "{\"success\": false}");
-        }
+    bool success = false;
+
+    if (xSemaphoreTake(scanSemaphore, portMAX_DELAY) == pdTRUE) {
+        success = rfidScanSuccess;
+        rfidScanSuccess = false;
+        xSemaphoreGive(scanSemaphore);
+    }
+
+    if (success) {
+        String response = "success";
+        request->send(200, "text/plain", response);
+    } else {
+        String response = "failed";
+        request->send(200, "text/plain", response);
+    }
+}
+
+void handleNewTagRequest(AsyncWebServerRequest *request) {
+    isAddingNewTag = true;
+    pendingRequest = request;  
+}
+
+void respondToPendingRequest() {
+    if (pendingRequest) {
+        String response = "{\"status\":\"Tag added successfully\"}";
+        AsyncWebServerResponse *resp = pendingRequest->beginResponse(200, "application/json", response);
+        sendCORSHeaders(resp);
+        pendingRequest->send(resp);
+        pendingRequest = nullptr;
     }
 }
