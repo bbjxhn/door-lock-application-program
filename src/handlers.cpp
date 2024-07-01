@@ -10,7 +10,6 @@
 
 bool isAddingNewTag;
 
-extern Servo SERVO;
 extern String savedPassword;
 extern bool rfidScanSuccess;
 extern SemaphoreHandle_t scanSemaphore;
@@ -28,10 +27,8 @@ void sendCORSHeaders(AsyncWebServerResponse *response) {
 void handleLock(AsyncWebServerRequest *request) {
     String state = request->getParam("state")->value();
     if (state == "unlocked") {
-        SERVO.write(180);
         request->send(200, "text/plain", "Unlocked");
     } else if (state == "locked") {
-        SERVO.write(-180);
         request->send(200, "text/plain", "Locked");
     } else {
         request->send(400, "text/plain", "Invalid state");

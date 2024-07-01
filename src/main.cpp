@@ -27,7 +27,6 @@ AsyncWebServer server(80);
 #include "keypad_config.h"
 Adafruit_Keypad keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 MFRC522 mfrc522(SS, -1);
-Servo SERVO;
 
 String input = "";
 String savedPassword = "";
@@ -67,13 +66,6 @@ void setup() {
 
     SPI.begin(SCK, MISO, MOSI); 
     mfrc522.PCD_Init();
-
-    ESP32PWM::allocateTimer(0);
-    ESP32PWM::allocateTimer(1);
-    ESP32PWM::allocateTimer(2);
-    ESP32PWM::allocateTimer(3);
-
-    SERVO.attach(SERVO_PIN);
 
     keypad.begin();
 

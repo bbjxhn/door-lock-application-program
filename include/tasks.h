@@ -3,14 +3,12 @@
 
 #include <Arduino.h>
 #include <Adafruit_Keypad.h>
-#include <ESP32Servo.h>
 #include <MFRC522.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <esp_task_wdt.h>
 
 extern Adafruit_Keypad keypad;
-extern Servo SERVO;
 extern MFRC522 mfrc522;
 extern String input;
 extern String savedPassword;

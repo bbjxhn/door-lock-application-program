@@ -28,9 +28,7 @@ void keypadTask(void *param) {
             char key = (char)event.bit.KEY;
             if (key == '*') {
                 if (input == savedPassword) {
-                    SERVO.write(180);
                     vTaskDelay(pdMS_TO_TICKS(1000));
-                    SERVO.write(-180);
                     isAuthActive = false;
                     input.clear();
                 } else {
