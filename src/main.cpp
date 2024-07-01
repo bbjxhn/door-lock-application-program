@@ -5,7 +5,9 @@
 
 #include <HTTPClient.h>
 #include <freertos/semphr.h>
+#include <vector>
 
+HTTPClient http;
 AsyncWebServer server(80);
 
 #define SCK (18)
@@ -22,15 +24,14 @@ AsyncWebServer server(80);
 #define C2 (14)
 #define C1 (12)
 
-#define SERVO_PIN (2)
-
 #include "keypad_config.h"
 Adafruit_Keypad keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 MFRC522 mfrc522(SS, -1);
 
 String input = "";
 String savedPassword = "";
-const char* serverStoreName = "http://172.20.10.3:3000/api/scanned-uid";
+const char* serverCheckUID = "http://172.20.10.3:3000/api/check-uid";
+const char* serverStoreUID = "http://172.20.10.3:3000/api/store-uid";
 
 bool isAuthActive = false;
 SemaphoreHandle_t xSemaphore;
@@ -38,10 +39,12 @@ SemaphoreHandle_t xSemaphore;
 bool rfidScanSuccess = false;
 SemaphoreHandle_t scanSemaphore;
 
-void sendUIDToServer(String uid) {
+String currentUID;  
+
+void sendUIDToServer(const char* serverEndpoint, String uid, bool isCheck) {
     if (WiFi.status() == WL_CONNECTED) {
         HTTPClient http;
-        http.begin(serverStoreName);
+        http.begin(serverEndpoint);
         http.addHeader("Content-Type", "application/json");
         String jsonPayload = "{\"uid\":\"" + uid + "\"}";
         int httpResponseCode = http.POST(jsonPayload);
@@ -50,6 +53,22 @@ void sendUIDToServer(String uid) {
             String response = http.getString();
             Serial.println("HTTP Response code: " + String(httpResponseCode));
             Serial.println("Server response: " + response);
+
+            if (isCheck) {
+                if (response == "UID Matched!") {
+                    digitalWrite(2, HIGH);  // Turn on the LED
+                } else {
+                    digitalWrite(2, LOW);   // Turn off the LED
+                }
+            } else {
+                if (httpResponseCode == 409) {
+                    Serial.println("Duplicate UID detected, not turning on the lock.");
+                } else if (response == "UID stored successfully") {
+                    Serial.println("New UID stored successfully.");
+                } else {
+                    Serial.println("Failed to store UID.");
+                }
+            }
         } else {
             Serial.print("Error on sending POST: ");
             Serial.println(httpResponseCode);
@@ -66,6 +85,8 @@ void setup() {
 
     SPI.begin(SCK, MISO, MOSI); 
     mfrc522.PCD_Init();
+
+    pinMode(2, OUTPUT);
 
     keypad.begin();
 

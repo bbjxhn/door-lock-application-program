@@ -3,7 +3,6 @@
 #include <ESPAsyncWebServer.h>
 #include <MFRC522.h>
 #include <Arduino.h>
-#include <ESP32Servo.h>
 #include "password_utils.h"
 
 #define SS (5)
@@ -13,6 +12,7 @@ bool isAddingNewTag;
 extern String savedPassword;
 extern bool rfidScanSuccess;
 extern SemaphoreHandle_t scanSemaphore;
+extern String currentUID;  // Declare currentUID to store the latest scanned UID
 
 MFRC522 rfid(SS, -1);
 
@@ -87,10 +87,12 @@ void handleNewTagRequest(AsyncWebServerRequest *request) {
 
 void respondToPendingRequest() {
     if (pendingRequest) {
-        String response = "{\"status\":\"Tag added successfully\"}";
+        String response = "{\"status\":\"Tag added successfully\", \"uid\":\"" + currentUID + "\"}";
         AsyncWebServerResponse *resp = pendingRequest->beginResponse(200, "application/json", response);
         sendCORSHeaders(resp);
         pendingRequest->send(resp);
         pendingRequest = nullptr;
+    } else {
+        Serial.println("Error: No pending request to respond to");
     }
 }

@@ -5,11 +5,14 @@
 #include <freertos/task.h>
 
 extern MFRC522 rfid;
-extern void sendUIDToServer(String uid);
+extern void sendUIDToServer(const char* serverEndpoint, String uid, bool isCheck);
 extern bool rfidScanSuccess;
 extern SemaphoreHandle_t scanSemaphore;
 extern bool isAddingNewTag;
 extern void respondToPendingRequest();
+extern const char* serverCheckUID;
+extern const char* serverStoreUID;
+extern String currentUID;  // Declare currentUID to store the latest scanned UID
 
 void keypadTask(void *param) {
     if (!readPasswordFromFile(savedPassword)) {
@@ -28,10 +31,11 @@ void keypadTask(void *param) {
             char key = (char)event.bit.KEY;
             if (key == '*') {
                 if (input == savedPassword) {
-                    vTaskDelay(pdMS_TO_TICKS(1000));
+                    Serial.println("\nAuthentication successful");
                     isAuthActive = false;
                     input.clear();
                 } else {
+                    Serial.println("\nAuthentication failed");
                     input.clear();
                 }
             } else if (key == '#' && input.length() > 0) {
@@ -59,9 +63,11 @@ void rfidTask(void *param) {
                 uid += String(rfid.uid.uidByte[i], HEX);
             }
             uid.toUpperCase();
+            sendUIDToServer(serverCheckUID, uid, true);
 
             if (isAddingNewTag) {
-                sendUIDToServer(uid);
+                currentUID = uid;  // Store the current UID
+                sendUIDToServer(serverStoreUID, uid, false);
 
                 if (xSemaphoreTake(scanSemaphore, portMAX_DELAY) == pdTRUE) {
                     rfidScanSuccess = true;
