@@ -47,4 +47,6 @@ void connect_hotspot() {
     }
     Serial.print("Connected to ");
     Serial.println(HOTSPOT_SSID);
+    Serial.print("IP Address: ");
+    Serial.println(WiFi.localIP());
 }

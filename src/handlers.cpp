@@ -6,7 +6,7 @@
 #include <ESP32Servo.h>
 #include "password_utils.h"
 
-#define SDA (21)
+#define SS (5)
 
 bool isAddingNewTag;
 
@@ -15,7 +15,7 @@ extern String savedPassword;
 extern bool rfidScanSuccess;
 extern SemaphoreHandle_t scanSemaphore;
 
-MFRC522 rfid(SDA, -1);
+MFRC522 rfid(SS, -1);
 
 AsyncWebServerRequest *pendingRequest = nullptr;
 

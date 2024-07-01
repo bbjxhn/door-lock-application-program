@@ -5,7 +5,6 @@
 
 extern String input;
 
-void setupPassword(String& password);
 void writePasswordToFile(const String& password);
 bool readPasswordFromFile(String& password);
 

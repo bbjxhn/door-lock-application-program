@@ -9,9 +9,9 @@
 AsyncWebServer server(80);
 
 #define SCK (18)
+#define SS (5)
 #define MOSI (23)
 #define MISO (19)
-#define SDA (21)
 
 #define KEYPAD_PID1824
 #define R4 (32)
@@ -26,7 +26,7 @@ AsyncWebServer server(80);
 
 #include "keypad_config.h"
 Adafruit_Keypad keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
-MFRC522 mfrc522(SDA, -1);
+MFRC522 mfrc522(SS, -1);
 Servo SERVO;
 
 String input = "";
